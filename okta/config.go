@@ -34,6 +34,7 @@ type (
 		orgName          string
 		domain           string
 		apiToken         string
+                bearerToken      string
 		clientID         string
 		privateKey       string
 		scopes           []string
@@ -103,7 +104,10 @@ func (c *Config) loadAndValidate(ctx context.Context) error {
 		okta.WithRateLimitMaxRetries(int32(c.retryCount)),
 		okta.WithUserAgentExtra("okta-terraform/3.27.0"),
 	}
-	if c.apiToken == "" {
+	if c.bearerToken != "" {
+		setters = append(setters, okta.WithAuthorizationMode("Bearer"))
+		setters = append(setters, okta.WithToken(c.bearerToken))
+	} else if c.apiToken == "" {
 		setters = append(setters, okta.WithAuthorizationMode("PrivateKey"))
 	}
 	_, client, err := okta.NewClient(
